@@ -18,9 +18,16 @@ Should work fine. Probably works on your machine too.
 
 ## Functionality
 
-**Current Version: 0.1**
+**Current Version: 0.3**
 
+***0.1***
 Currently supports printing text to the screen - it displays "NGBL loaded" on boot. Simple, but it works. Getting even this working involved battling GAS's quirky 16-bit addressing modes, so it's an achievement.
+
+***0.2***
+Currently supports setting up the stack. It has a stack! Let's go!
+
+***0.3***
+Currently can draw some cute picture. Lets go!
 
 **Plans for 1.0:**
 - Kernel loading capabilities
@@ -40,8 +47,8 @@ Watch as "NGBL loaded" appears on your screen. Beautiful.
 
 ## Contributions
 
-Clone it. Fork it. Break it. Fix it. Send PRs. I honestly don't care what you do with it. If you manage to improve this thing, you're a hero. If you're reading this README, you're probably also fighting with bootloaders at 3 AM, so welcome to the club.
+Clone it. Fork it. Break it. Fix it. Send PRs. I honestly don't care what you do with it.
 
 ---
 
-*Written at 3 AM after debugging segment registers for 4 hours straight. Send help.* 
+*Written after debugging segment registers for 4 hours straight. Send help.*
