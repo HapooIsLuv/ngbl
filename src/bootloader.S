@@ -1,11 +1,11 @@
 .globl _start
-.code16
 
 .section .text
+  .code16
   _start:
     ljmp $0x0000, $boot
     # we included this so there is no BIOS quirks.
-    # sometimes, bootloader moves to seg:0x7c0 offset:0 or seg:0x0000 offset: 0x7c00
+    # sometimes, bios moves to seg:0x7c0 offset:0 or seg:0x0000 offset: 0x7c00
     # they inherently point to the same mem addr. Lets do a far jmp to change into a preferred value.
     boot:
       mov $0x0000, %ax
@@ -45,9 +45,9 @@
       call print_str
       add $2, %sp
 
+      call wait_for_key
 
-      cli
-      hlt
+      jmp load_gdt
 
     clear_screen:
       push %bp
@@ -126,6 +126,18 @@
       pop %bp
       ret
 
+    wait_for_key:
+      push %bp
+      mov %sp, %bp
+      pusha
+
+      mov $0x00, %ah # wait for keystroke
+      int $0x16
+
+      popa
+      mov %bp, %sp
+      pop %bp
+      ret
 
     set_video_mode:
       push %bp
@@ -185,9 +197,65 @@
       pop %bp
       ret
 
+    load_gdt:
+      .equ CODE_SEG, 0x08
+      cli # disable interrupts
+      lgdt gdt_descriptor
+
+      mov %cr0, %eax
+      or $0x01, %al
+      mov %eax, %cr0
+
+      ljmp $CODE_SEG, $pm_main
+
+    gdt_start:
+      null_segment_descriptor:
+        .long 0x00
+        .long 0x00
+
+      code_segment_descriptor:
+        .word 0xFFFF # Limit
+        .word 0x0000 # Base
+        .byte 0x00   # Base
+        .byte 0b10011011 # Access byte
+        .byte 0b11001111 # Flags & limit
+        .byte 0x0 # Base
+
+      data_segment_register:
+        .word 0xFFFF # Limit
+        .word 0x0000 # Base
+        .byte 0x00   # Base
+        .byte 0b10010011 # access byte
+        .byte 0b11001111 # Flags & limit
+        .byte 0x0   # Base
+    gdt_end:
+
+    gdt_descriptor:
+      .word gdt_end - gdt_start - 1
+      .long gdt_start
+
+    .code32
+    pm_main:
+      .equ DATA_SEG, 0x10
+      mov $DATA_SEG, %ax
+      mov %ax, %ds
+      mov %ax, %es
+      mov %ax, %fs
+      mov %ax, %gs
+      mov %ax, %ss
+
+      mov $0x9c00, %ebp
+      mov %ebp, %esp
+
+      mov $0xB8000, %edi
+      movw $0x0F41, (%edi)
+
+      # TODO: turn on A20 line
+      hlt
 
 
-  msg: .asciz "[ OK ] NGBL booted!\r\n\r\nStarting boot sequence..."
+
+  msg: .asciz "[ OK ] NGBL booted!\r\n\r\npress any key to continue boot seq"
   art:.byte 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf
       .byte 0xf, 0xf, 0x4, 0x4, 0xf, 0xf, 0x4, 0x4, 0xf, 0xf
       .byte 0xf, 0x4, 0xd, 0xd, 0x4, 0x4, 0xd, 0xd, 0x4, 0xf
@@ -197,7 +265,6 @@
       .byte 0xf, 0xf, 0xf, 0x4, 0xd, 0xd, 0x4, 0xf, 0xf, 0xf
       .byte 0xf, 0xf, 0xf, 0xf, 0x4, 0x4, 0xf, 0xf, 0xf, 0xf
       .byte 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf
-  read_sector_msg: .asciz "Failed to read sector :("
 
 
 .fill 510 - (.-_start), 1, 0

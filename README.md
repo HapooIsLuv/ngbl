@@ -52,3 +52,51 @@ Clone it. Fork it. Break it. Fix it. Send PRs. I honestly don't care what you do
 ---
 
 *Written after debugging segment registers for 4 hours straight. Send help.*
+load_gdt:
+      .equ CODE_SEGMENT, 0x08
+      cli # disable interrupts
+      lgdt (gdt_descriptor)
+
+      mov %cr0, %eax
+      or $1, %al
+      mov %eax, %cr0
+
+      ljmp $CODE_SEGMENT, $protected_mode_main
+      # long jump to code segment
+
+
+    gdt_start:
+      # this is for the Null segment descriptor
+      .long 0x0000_0000
+      .long 0x0000_0000
+
+      # the code segment descriptors
+      .word 0xFFFF # Limit
+      .word 0x0000 # Base
+      .byte 0x00   # Base
+      .byte 0b10011011 # Access byte
+      .byte 0b11001111 # Flags
+      .byte 0x00   # Base
+
+      # data segment descriptors
+      .word 0xFFFF # Limit
+      .word 0x0000 # Base
+      .byte 0x00   # Base
+      .byte 0b10010011 # Access byte
+      .byte 0b11001111 # Flags
+      .byte 0x00   # Base
+    gdt_end:
+
+    gdt_descriptor:
+      .word gdt_end - gdt_start - 1
+      .long gdt_start
+
+    .code32
+    protected_mode_main:
+      .equ DATA_SEGMENT, 0x10
+      mov $DATA_SEGMENT, %ax
+      mov %ax, %ds
+      mov %ax, %fs
+      mov %ax, %es
+      mov %ax, %ss
+      mov %ax, %gs
