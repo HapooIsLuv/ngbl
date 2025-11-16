@@ -18,7 +18,7 @@ Should work fine. Probably works on your machine too.
 
 ## Functionality
 
-**Current Version: 0.3**
+**Current Version: 0.4**
 
 ***0.1***
 Currently supports printing text to the screen - it displays "NGBL loaded" on boot. Simple, but it works. Getting even this working involved battling GAS's quirky 16-bit addressing modes, so it's an achievement.
@@ -28,6 +28,9 @@ Currently supports setting up the stack. It has a stack! Let's go!
 
 ***0.3***
 Currently can draw some cute picture. Lets go!
+
+***0.4***
+Currently puts you on protected mode. No BIOS interrupts around but we now got 32 bit. Planning to turn on a20 lines after.
 
 **Plans for 1.0:**
 - Kernel loading capabilities
